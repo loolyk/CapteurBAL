@@ -37,5 +37,3 @@ On Rules#Timer=2 do // Quand le timer 2 expire
   Pulse,15,1,300 // On fait clignoter la led
   timerSet,2,1 // remet le timer2 à 1 seconde pour boucler
 EndOn
-
-// test avec Vlad
