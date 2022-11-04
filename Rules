@@ -1,0 +1,41 @@
+// Detection ouverture sur le premier capteur 
+on Courrier#State do
+
+  // il y a un colis si les 2 capteurs sont actionnés et que la variable attente est à 0
+  if [Courrier#State]=1 and [Colis#State]=1 and [Temporisation#Attente]=0
+    GPIO 15,1 // on allume la led
+    TaskValueSet,5,2,[Compteur#NbColis]+1   // incremente 1 colis
+    Publish,%sysname%/action,colis // Publie colis sur MQTT Jeedom
+  endif
+
+  // il y a une lettre si seulement 1 capteur est actionné et que l’attente est à 0
+  if [Courrier#State]=1 and [Colis#State]=0 and [Temporisation#Attente]=0
+    GPIO 15,1 //on allume la led
+    TaskValueSet,5,1,[Compteur#NbLettres]+1  // increment 1 lettre
+    Publish,%sysname%/action,lettre // Publie lettre sur MQTT Jeedom
+  endif
+
+endon
+
+// Appuie sur le bouton 
+on RAZero#State=1 do
+  TaskValueSet,5,1,0 // Remise à zéro lettres
+  TaskValueSet,5,2,0 // Remise à zéro colis
+  GPIO 15,0 // On eteint la LED 
+  timerSet,1,10 // on déclenche le timer1 pour 10 secondes
+  TaskValueSet,6,1,1 // on passe à 1 l'attente 
+  timerSet,2,1 // On initialise le timer 2 juste 1 seconde
+  Publish,%sysname%/action,raz // Publie RAZ sur MQTT Jeedom
+endon
+
+on Rules#Timer=1 do //Quand le timer 1 expire
+  TaskValueSet,6,1,0 // on passe à 0 la variable attente
+  timerSet,2,0 // on stop le timer 2 qui fait clignoter la LED
+endon
+
+On Rules#Timer=2 do // Quand le timer 2 expire
+  Pulse,15,1,300 // On fait clignoter la led
+  timerSet,2,1 // remet le timer2 à 1 seconde pour boucler
+EndOn
+
+
