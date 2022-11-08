@@ -1,50 +1,50 @@
-on Courrier#State do
+on Courrier#State do // Détection d'ouverture
 
-timerSet,1,1 // on créé un timer 1 pour laisser le temps d'ouvrir la porte
+  timerSet,1,1 // on créé un timer 1 pour laisser le temps d'ouvrir la porte
 
 endon
 
 on Rules#Timer=1 do //Quand le timer 1 expire on fait les checks
 
-Publish,%sysname%/action/colis,0 // on initialise MQTT a 0
-Publish,%sysname%/action/lettre,0 // on initialise MQTT a 0
+  Publish,%sysname%/action/colis,0    // on initialise MQTT a 0
+  Publish,%sysname%/action/lettre,0   // on initialise MQTT a 0
 
-  if [Courrier#State]=1 and [Colis#State]=1 and [Temporisation#Attente]=0
-    GPIO 15,1 // on allume la led
-    // il y a un colis
-    TaskValueSet,5,2,[Compteur#NbColis]+1
-    Publish,%sysname%/action/colis,1
-  endif
+    if [Courrier#State]=1 and [Colis#State]=1 and [Temporisation#Attente]=0
+      GPIO 15,1 // on allume la led
+      // il y a un colis
+      TaskValueSet,5,2,[Compteur#NbColis]+1
+      Publish,%sysname%/action/colis,1 // On publie Colis sur MQTT
+    endif
 
-  if [Courrier#State]=1 and [Colis#State]=0 and [Temporisation#Attente]=0
-     GPIO 15,1 // on allume la led
-     // il y a une lettre
-     TaskValueSet,5,1,[Compteur#NbLettres]+1
-     Publish,%sysname%/action/lettre,1
-  endif
+    if [Courrier#State]=1 and [Colis#State]=0 and [Temporisation#Attente]=0
+      GPIO 15,1 // on allume la led
+      // il y a une lettre
+      TaskValueSet,5,1,[Compteur#NbLettres]+1
+      Publish,%sysname%/action/lettre,1 // On publie Lettre sur MQTT
+    endif
 
 endon
 
-on RAZero#State=1 do
+on RAZero#State=1 do // Détection appuie sur bouton poussoir
 
-Publish,%sysname%/action/raz,0
+  Publish,%sysname%/action/raz,0 // on initialise MQTT a 0 
   
   TaskValueSet,5,1,0 // Remise à zéro lettres
-  TaskValueSet,5,2,0 // Remise à zéro colis
-  GPIO 15,0 // On eteint la LED 
-  timerSet,2,10 // on déclenche le timer2 pour 10 secondes
-  TaskValueSet,6,1,1 // on passe à 1 l'attente
-  timerSet,3,1 // on créé timer 3 pour la faire clignoter la led
+    TaskValueSet,5,2,0 // Remise à zéro colis
+      GPIO 15,0 // On eteint la LED 
+        timerSet,2,10 // on déclenche le timer2 pour 10 secondes
+          TaskValueSet,6,1,1 // on passe à 1 l'attente
+            timerSet,3,1 // on créé timer 3 pour la faire clignoter la led
  
 endon
 
 on Rules#Timer=2 do //Quand le timer 2 expire
   TaskValueSet,6,1,0 // on passe à 0 l'attente
-Publish,%sysname%/action/raz,1
-  timerSet,3,0
+    Publish,%sysname%/action/raz,1 // On publie RAZ sur MQTT
+      timerSet,3,0
 endon
 
 On Rules#Timer=3 do // pour faire clignoter la led
-Pulse,15,1,300
-timerSet,3,1 
+  Pulse,15,1,300
+    timerSet,3,1 
 EndOn
