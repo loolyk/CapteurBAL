@@ -1,4 +1,4 @@
-// Fonctionne au 11-11-2022
+// Optimisé avec uptime en valeur
 
 on Courrier#State do // Détection d'ouverture
 
@@ -8,19 +8,16 @@ endon
 
 on Rules#Timer=1 do //Quand le timer 1 expire on fait les checks
 
-  Publish,%sysname%/action/colis,0    // on initialise MQTT a 0
-  Publish,%sysname%/action/lettre,0   // on initialise MQTT a 0
-
     if [Courrier#State]=1 and [Colis#State]=1 and [Temporisation#Attente]=0      // il y a un colis
       GPIO 15,1 // on allume la led
       TaskValueSet,5,2,[Compteur#NbColis]+1
-      Publish,%sysname%/action/colis,1 // On publie Colis sur MQTT
+      Publish,%sysname%/action/colis,%uptime_ms% // On publie Colis RAZ avec l'uptime sur MQTT
     endif
 
     if [Courrier#State]=1 and [Colis#State]=0 and [Temporisation#Attente]=0      // il y a une lettre
       GPIO 15,1 // on allume la led
       TaskValueSet,5,1,[Compteur#NbLettres]+1
-      Publish,%sysname%/action/lettre,1 // On publie Lettre sur MQTT
+      Publish,%sysname%/action/lettre,%uptime_ms% // On publie Lettre avec l'uptime sur MQTT
     endif
 
     if [Courrier#State]=1 and [Colis#State]=1 and [Temporisation#Attente]=1      // il y a une releve
@@ -30,11 +27,9 @@ on Rules#Timer=1 do //Quand le timer 1 expire on fait les checks
 endon
 
 on RAZero#State=1 do // Détection appuie sur bouton poussoir
-
-  //Publish,%sysname%/action/raz,0 // on initialise MQTT a 0 
   
-  TaskValueSet,5,1,0 // Remise à zéro lettres
-    TaskValueSet,5,2,0 // Remise à zéro colis
+  TaskValueSet,5,1,0 // Remise à zéro lettres dans NAND interne
+    TaskValueSet,5,2,0 // Remise à zéro colis dans NAND interne 
       GPIO 15,0 // On eteint la LED 
         timerSet,2,10 // on déclenche le timer2 pour 10 secondes
           TaskValueSet,6,1,1 // on passe à 1 l'attente
