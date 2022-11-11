@@ -1,6 +1,8 @@
+// Fonctionne au 11-11-2022
+
 on Courrier#State do // Détection d'ouverture
 
-  timerSet,1,1 // on créé un timer 1 pour laisser le temps d'ouvrir la porte
+  TimerSet_ms,1,500 // on créé un timer 1 de 500 millisecondes pour laisser le temps d'ouvrir la porte
 
 endon
 
@@ -21,15 +23,15 @@ on Rules#Timer=1 do //Quand le timer 1 expire on fait les checks
       Publish,%sysname%/action/lettre,1 // On publie Lettre sur MQTT
     endif
 
-    if [Courrier#State]=1 and [Colis#State]=0 and [Temporisation#Attente]=1      // il y a une releve
-      Publish,%sysname%/action/raz,1 // On publie RAZ sur MQTT
+    if [Courrier#State]=1 and [Colis#State]=1 and [Temporisation#Attente]=1      // il y a une releve
+      Publish,%sysname%/action/raz,%uptime_ms% // On publie RAZ avec l'uptime sur MQTT
     endif
 
 endon
 
 on RAZero#State=1 do // Détection appuie sur bouton poussoir
 
-  Publish,%sysname%/action/raz,0 // on initialise MQTT a 0 
+  //Publish,%sysname%/action/raz,0 // on initialise MQTT a 0 
   
   TaskValueSet,5,1,0 // Remise à zéro lettres
     TaskValueSet,5,2,0 // Remise à zéro colis
